@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARCADE NEXUS — Play Instantly</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎮</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Lexend:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#06060e;--surface:#0c0c1a;--surface2:#111126;
+  --accent:#ff2d6b;--cyan:#00e5ff;--lime:#a6ff00;--gold:#ffc400;--purple:#b14aed;--orange:#ff6d2e;
+  --text:#e8e8f0;--text2:#7a7a9a;--text3:#44445a;
+  --radius:14px;--glow:0 0 30px;
+}
+html,body{width:100%;min-height:100%;background:var(--bg);color:var(--text);font-family:'Lexend',sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:#2a2a4a;border-radius:3px}
+html{scrollbar-width:thin;scrollbar-color:#2a2a4a transparent}
+
+/* AMBIENT BG */
+.ambient{position:fixed;inset:0;pointer-events:none;z-index:0}
+.ambient::before{content:'';position:absolute;width:600px;height:600px;top:-100px;left:-100px;background:radial-gradient(circle,rgba(255,45,107,.07),transparent 70%);animation:drift 20s ease-in-out infinite}
+.ambient::after{content:'';position:absolute;width:500px;height:500px;bottom:-80px;right:-80px;background:radial-gradient(circle,rgba(0,229,255,.05),transparent 70%);animation:drift 25s ease-in-out infinite reverse}
+@keyframes drift{0%,100%{transform:translate(0,0)}50%{transform:translate(80px,60px)}}
+
+/* GRAIN */
+.grain{position:fixed;inset:0;pointer-events:none;z-index:1;opacity:.025;background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+/* HEADER */
+header{position:sticky;top:0;z-index:100;padding:14px 24px;transition:all .35s ease;border-bottom:1px solid transparent}
+header.scrolled{background:rgba(6,6,14,.92);backdrop-filter:blur(24px);border-bottom-color:rgba(255,255,255,.04)}
+.header-inner{max-width:1440px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.logo-icon{width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--cyan));display:flex;align-items:center;justify-content:center;font-size:18px;box-shadow:var(--glow) rgba(255,45,107,.2)}
+.logo-text h1{font-family:'Chakra Petch',sans-serif;font-size:19px;font-weight:700;letter-spacing:1px;background:linear-gradient(135deg,var(--accent),var(--cyan),var(--lime));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-size:200% 200%;animation:shimmer 5s ease infinite}
+.logo-text span{display:block;font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text3);letter-spacing:3px;text-transform:uppercase}
+@keyframes shimmer{0%,100%{background-position:0% 50%}50%{background-position:100% 50%}}
+
+/* SEARCH */
+.search-box{position:relative;flex:0 1 340px;min-width:200px}
+.search-box svg{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--text3)}
+.search-box input{width:100%;padding:10px 14px 10px 40px;border-radius:10px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);color:var(--text);font-size:14px;font-family:'Lexend',sans-serif;outline:none;transition:border-color .2s}
+.search-box input:focus{border-color:rgba(255,45,107,.35)}
+.search-box input::placeholder{color:var(--text3)}
+
+/* GAME COUNT */
+.game-count{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);letter-spacing:1px;padding:6px 12px;border:1px solid rgba(255,255,255,.05);border-radius:8px;white-space:nowrap}
+
+/* MAIN */
+main{position:relative;z-index:2;max-width:1440px;margin:0 auto;padding:0 24px 80px}
+
+/* HERO */
+.hero{margin:28px 0 32px;border-radius:18px;background:linear-gradient(135deg,rgba(255,45,107,.08),rgba(0,229,255,.05),rgba(166,255,0,.04));border:1px solid rgba(255,255,255,.04);padding:36px 32px;position:relative;overflow:hidden}
+.hero::after{content:'🕹️';position:absolute;top:-20px;right:10px;font-size:110px;opacity:.04;animation:float 5s ease-in-out infinite}
+@keyframes float{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-14px) rotate(3deg)}}
+.hero-badge{font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:700;color:var(--lime);letter-spacing:4px;text-transform:uppercase;margin-bottom:10px}
+.hero h2{font-family:'Chakra Petch',sans-serif;font-size:26px;font-weight:700;line-height:1.25;margin-bottom:18px}
+.hero h2 em{font-style:normal;color:var(--accent)}
+.hot-picks{display:flex;gap:8px;flex-wrap:wrap}
+.hot-btn{padding:7px 14px;border-radius:9px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.06);color:var(--text);font-size:13px;font-weight:500;cursor:pointer;font-family:'Lexend',sans-serif;display:flex;align-items:center;gap:6px;transition:all .2s}
+.hot-btn:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.15);transform:translateY(-1px)}
+
+/* CATEGORIES */
+.cat-bar{display:flex;gap:6px;margin-bottom:24px;flex-wrap:wrap;padding:2px 0}
+.cat-btn{padding:8px 15px;border-radius:10px;border:1px solid rgba(255,255,255,.05);background:rgba(255,255,255,.02);color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;font-family:'Lexend',sans-serif;transition:all .2s;white-space:nowrap}
+.cat-btn:hover{background:rgba(255,255,255,.06)}
+.cat-btn.active{background:rgba(255,255,255,.1);color:#fff;border-color:rgba(255,255,255,.15)}
+.cat-btn[data-cat="rhythm"].active{color:var(--accent);border-color:rgba(255,45,107,.3);background:rgba(255,45,107,.1)}
+.cat-btn[data-cat="racing"].active{color:var(--cyan);border-color:rgba(0,229,255,.3);background:rgba(0,229,255,.1)}
+.cat-btn[data-cat="puzzle"].active{color:var(--gold);border-color:rgba(255,196,0,.3);background:rgba(255,196,0,.1)}
+.cat-btn[data-cat="io"].active{color:var(--lime);border-color:rgba(166,255,0,.3);background:rgba(166,255,0,.1)}
+.cat-btn[data-cat="action"].active{color:var(--orange);border-color:rgba(255,109,46,.3);background:rgba(255,109,46,.1)}
+.cat-btn[data-cat="sandbox"].active{color:var(--purple);border-color:rgba(177,74,237,.3);background:rgba(177,74,237,.1)}
+
+/* RESULT COUNT */
+.result-bar{font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--text3);margin-bottom:18px}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+
+/* CARD */
+.card{position:relative;border-radius:var(--radius);overflow:hidden;cursor:pointer;background:var(--surface);border:1px solid rgba(255,255,255,.04);transition:all .35s cubic-bezier(.4,0,.2,1)}
+.card:hover{transform:translateY(-5px) scale(1.015);border-color:rgba(255,255,255,.1);box-shadow:0 16px 40px rgba(0,0,0,.5)}
+.card-icon{height:125px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+.card-icon span{font-size:48px;z-index:2;transition:transform .35s;filter:drop-shadow(0 2px 8px rgba(0,0,0,.3))}
+.card:hover .card-icon span{transform:scale(1.15)}
+.card-icon::before{content:'';position:absolute;inset:0;opacity:.5}
+.card[data-cat="rhythm"] .card-icon::before{background:linear-gradient(135deg,rgba(255,45,107,.12),transparent 70%)}
+.card[data-cat="racing"] .card-icon::before{background:linear-gradient(135deg,rgba(0,229,255,.12),transparent 70%)}
+.card[data-cat="puzzle"] .card-icon::before{background:linear-gradient(135deg,rgba(255,196,0,.12),transparent 70%)}
+.card[data-cat="io"] .card-icon::before{background:linear-gradient(135deg,rgba(166,255,0,.12),transparent 70%)}
+.card[data-cat="action"] .card-icon::before{background:linear-gradient(135deg,rgba(255,109,46,.12),transparent 70%)}
+.card[data-cat="sandbox"] .card-icon::before{background:linear-gradient(135deg,rgba(177,74,237,.12),transparent 70%)}
+
+/* HOT BADGE */
+.badge-hot{position:absolute;top:8px;right:8px;background:linear-gradient(135deg,#ff2d2d,#ff8800);color:#fff;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:700;padding:2px 7px;border-radius:5px;letter-spacing:1.5px;z-index:3}
+
+/* CARD INFO */
+.card-info{padding:12px 14px 14px}
+.card-info h3{font-size:14px;font-weight:600;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:5px}
+.card-info p{font-size:11.5px;color:var(--text2);line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-bottom:8px;min-height:32px}
+.cat-tag{display:inline-block;font-family:'JetBrains Mono',monospace;font-size:9px;font-weight:600;letter-spacing:1px;text-transform:uppercase;padding:3px 7px;border-radius:5px}
+.card[data-cat="rhythm"] .cat-tag{color:var(--accent);background:rgba(255,45,107,.1)}
+.card[data-cat="racing"] .cat-tag{color:var(--cyan);background:rgba(0,229,255,.1)}
+.card[data-cat="puzzle"] .cat-tag{color:var(--gold);background:rgba(255,196,0,.1)}
+.card[data-cat="io"] .cat-tag{color:var(--lime);background:rgba(166,255,0,.1)}
+.card[data-cat="action"] .cat-tag{color:var(--orange);background:rgba(255,109,46,.1)}
+.card[data-cat="sandbox"] .cat-tag{color:var(--purple);background:rgba(177,74,237,.1)}
+
+/* PLAY OVERLAY */
+.play-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .3s;z-index:5;pointer-events:none}
+.card:hover .play-overlay{opacity:1}
+.play-btn{width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;transform:scale(.6);transition:transform .35s cubic-bezier(.4,0,.2,1)}
+.card:hover .play-btn{transform:scale(1)}
+.card[data-cat="rhythm"] .play-overlay{background:linear-gradient(to top,rgba(255,45,107,.35),transparent 60%)}
+.card[data-cat="rhythm"] .play-btn{background:var(--accent);box-shadow:var(--glow) rgba(255,45,107,.5)}
+.card[data-cat="racing"] .play-overlay{background:linear-gradient(to top,rgba(0,229,255,.35),transparent 60%)}
+.card[data-cat="racing"] .play-btn{background:var(--cyan);box-shadow:var(--glow) rgba(0,229,255,.5)}
+.card[data-cat="puzzle"] .play-overlay{background:linear-gradient(to top,rgba(255,196,0,.35),transparent 60%)}
+.card[data-cat="puzzle"] .play-btn{background:var(--gold);box-shadow:var(--glow) rgba(255,196,0,.5)}
+.card[data-cat="io"] .play-overlay{background:linear-gradient(to top,rgba(166,255,0,.35),transparent 60%)}
+.card[data-cat="io"] .play-btn{background:var(--lime);box-shadow:var(--glow) rgba(166,255,0,.5)}
+.card[data-cat="action"] .play-overlay{background:linear-gradient(to top,rgba(255,109,46,.35),transparent 60%)}
+.card[data-cat="action"] .play-btn{background:var(--orange);box-shadow:var(--glow) rgba(255,109,46,.5)}
+.card[data-cat="sandbox"] .play-overlay{background:linear-gradient(to top,rgba(177,74,237,.35),transparent 60%)}
+.card[data-cat="sandbox"] .play-btn{background:var(--purple);box-shadow:var(--glow) rgba(177,74,237,.5)}
+.play-btn svg{width:20px;height:20px;fill:#fff;margin-left:2px}
+
+/* EMPTY */
+.empty{text-align:center;padding:80px 20px;color:var(--text3)}
+.empty span{font-size:48px;display:block;margin-bottom:14px}
+.empty h3{font-family:'Chakra Petch',sans-serif;font-size:18px;color:var(--text2);margin-bottom:6px}
+
+/* PLAYER MODAL */
+.player-overlay{position:fixed;inset:0;z-index:1000;background:rgba(0,0,0,.94);backdrop-filter:blur(24px);display:none;flex-direction:column;animation:fadeIn .25s ease}
+.player-overlay.open{display:flex}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.player-header{display:flex;align-items:center;justify-content:space-between;padding:10px 18px;background:rgba(12,12,26,.95);border-bottom:1px solid rgba(255,255,255,.06);flex-shrink:0}
+.player-title{display:flex;align-items:center;gap:10px}
+.player-title span.icon{font-size:26px}
+.player-title h2{font-family:'Chakra Petch',sans-serif;font-size:17px;font-weight:600}
+.player-title small{font-family:'JetBrains Mono',monospace;font-size:11px;display:block;margin-top:1px}
+.player-actions{display:flex;gap:8px;align-items:center}
+.btn-fs,.btn-close{padding:8px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:'Lexend',sans-serif;border:1px solid rgba(255,255,255,.08);display:flex;align-items:center;gap:5px;text-decoration:none;transition:all .15s}
+.btn-fs{background:rgba(255,255,255,.06);color:#fff}
+.btn-fs:hover{background:rgba(255,255,255,.12)}
+.btn-close{background:rgba(255,50,50,.1);color:#ff4444;border-color:rgba(255,50,50,.15);width:38px;height:38px;padding:0;justify-content:center;font-size:18px}
+.btn-close:hover{background:rgba(255,50,50,.2)}
+.player-body{flex:1;position:relative}
+.player-body iframe{width:100%;height:100%;border:none}
+.loader{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;z-index:2}
+.loader.hidden{display:none}
+.spinner{width:42px;height:42px;border:3px solid rgba(255,255,255,.08);border-top-color:var(--accent);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loader span{font-family:'JetBrains Mono',monospace;font-size:13px;color:var(--text2);letter-spacing:1px}
+
+/* FOOTER */
+footer{max-width:1440px;margin:0 auto;padding:0 24px 40px;text-align:center}
+footer p{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text3);line-height:1.7}
+footer a{color:var(--text2);text-decoration:none;transition:color .2s}
+footer a:hover{color:var(--accent)}
+
+/* RESPONSIVE */
+@media(max-width:640px){
+  .header-inner{gap:10px}
+  .hero{padding:24px 20px}
+  .hero h2{font-size:20px}
+  .grid{grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px}
+  .card-icon{height:100px}
+  .card-icon span{font-size:36px}
+  .card-info{padding:10px 12px 12px}
+  .card-info h3{font-size:13px}
+  .card-info p{font-size:11px;min-height:28px}
+  main{padding:0 14px 60px}
+}
+</style>
+</head>
+<body>
+
+<div class="ambient"></div>
+<div class="grain"></div>
+
+<!-- HEADER -->
+<header id="header">
+  <div class="header-inner">
+    <a class="logo" href="#">
+      <div class="logo-icon">🎮</div>
+      <div class="logo-text">
+        <h1>ARCADE NEXUS</h1>
+        <span id="countLabel">44 Games • Play Instantly</span>
+      </div>
+    </a>
+    <div class="search-box">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" placeholder="Search games..." autocomplete="off">
+    </div>
+    <div class="game-count" id="headerCount">44 GAMES</div>
+  </div>
+</header>
+
+<main>
+  <!-- HERO -->
+  <section class="hero" id="heroSection">
+    <div class="hero-badge">★ TRENDING NOW</div>
+    <h2>Play the hottest games <em>instantly</em> — zero downloads, zero installs.</h2>
+    <div class="hot-picks" id="hotPicks"></div>
+  </section>
+
+  <!-- CATEGORIES -->
+  <div class="cat-bar" id="catBar"></div>
+
+  <!-- RESULT COUNT -->
+  <div class="result-bar" id="resultBar"></div>
+
+  <!-- GAME GRID -->
+  <div class="grid" id="gameGrid"></div>
+
+  <!-- EMPTY STATE -->
+  <div class="empty" id="emptyState" style="display:none">
+    <span>🔍</span>
+    <h3>No games found</h3>
+    <p>Try a different search or category</p>
+  </div>
+</main>
+
+<footer>
+  <p>ARCADE NEXUS • Powered by <a href="https://github.com/mryang67" target="_blank" rel="noopener">mryang67</a> • All games are property of their respective owners</p>
+</footer>
+
+<!-- PLAYER MODAL -->
+<div class="player-overlay" id="playerOverlay">
+  <div class="player-header">
+    <div class="player-title">
+      <span class="icon" id="playerIcon"></span>
+      <div>
+        <h2 id="playerTitle"></h2>
+        <small id="playerCat"></small>
+      </div>
+    </div>
+    <div class="player-actions">
+      <a class="btn-fs" id="fullscreenBtn" href="#" target="_blank" rel="noopener">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        Fullscreen
+      </a>
+      <button class="btn-close" id="closeBtn" title="Close">✕</button>
+    </div>
+  </div>
+  <div class="player-body">
+    <div class="loader" id="loader">
+      <div class="spinner"></div>
+      <span id="loaderText">Loading...</span>
+    </div>
+    <iframe id="gameFrame" allow="autoplay; fullscreen; gamepad" sandbox="allow-scripts allow-same-origin allow-popups allow-forms"></iframe>
+  </div>
+</div>
+
+<script>
+const BASE = 'https://mryang67.github.io';
+
+const CATS = {
+  rhythm:  { label:'🎵 Rhythm',      color:'#ff2d6b' },
+  racing:  { label:'🏎️ Racing',      color:'#00e5ff' },
+  puzzle:  { label:'🧩 Puzzle',       color:'#ffc400' },
+  io:      { label:'🌐 Multiplayer',  color:'#a6ff00' },
+  action:  { label:'⚔️ Action',      color:'#ff6d2e' },
+  sandbox: { label:'🔨 Sandbox',      color:'#b14aed' },
+};
+
+const GAMES = [
+  // ─── RHYTHM ───
+  {id:'fnf',            title:"Friday Night Funkin'",          cat:'rhythm',  icon:'🎤', desc:'Hit the notes, impress your girl\'s dad!', hot:true},
+  {id:'fnfmiku',        title:'FNF vs Hatsune Miku',          cat:'rhythm',  icon:'🎀', desc:'Rap battle the virtual pop star'},
+  {id:'fnfvstricky',    title:'FNF vs Tricky Phase 3',        cat:'rhythm',  icon:'🤡', desc:'Face the madness clown — full version!', hot:true},
+  {id:'fnfvshank',      title:'FNF vs Hank',                  cat:'rhythm',  icon:'🔪', desc:'Accelerant Hank brings the heat'},
+  {id:'fnfvsvoid',      title:'FNF vs Void',                  cat:'rhythm',  icon:'🌑', desc:'Darkness falls in this intense mod'},
+  {id:'fnfcamellia',    title:'FNF vs Camellia',              cat:'rhythm',  icon:'🌸', desc:'Insane difficulty rhythm challenge'},
+  {id:'fnfcamillia',    title:'FNF vs Camellia v2',           cat:'rhythm',  icon:'💮', desc:'Even harder remix — Rude Buster'},
+  {id:'fnfsarvente',    title:'FNF Mid-Fight Masses',         cat:'rhythm',  icon:'⛪', desc:'Sarvente\'s church storyline mod'},
+  {id:'fnfgc',          title:'FNF Garcello',                 cat:'rhythm',  icon:'🚬', desc:'Psych Engine smoke break mod'},
+  {id:'fnfsgxmatt',     title:'FNF Shaggy × Matt',           cat:'rhythm',  icon:'🥊', desc:'Two legends clash in rhythm battle'},
+  {id:'indiecross',     title:'Indie Cross',                  cat:'rhythm',  icon:'💀', desc:'FNF meets Sans, Cuphead & Bendy!', hot:true},
+  {id:'fnf-',           title:"FNF Classic (Alt)",            cat:'rhythm',  icon:'🎵', desc:'Original Friday Night Funkin\' mirror'},
+  {id:'shiawese',       title:'BEAT//RUSH',                   cat:'rhythm',  icon:'⚡', desc:'Cyberpunk 4-lane rhythm game'},
+  {id:'shiawese2',      title:'SugarCrash!',                  cat:'rhythm',  icon:'🍬', desc:'Candy-colored rhythm rush'},
+
+  // ─── RACING ───
+  {id:'subway-surfers',          title:'Subway Surfers',              cat:'racing', icon:'🛹', desc:'Dash through the subway tracks!', hot:true},
+  {id:'subway-surfer-bj',       title:'Subway Surfers Beijing',      cat:'racing', icon:'🏯', desc:'Run through the streets of Beijing'},
+  {id:'subwaysurfersbarcelona',  title:'Subway Surfers Barcelona',    cat:'racing', icon:'🇪🇸', desc:'Surf through sunny Barcelona'},
+  {id:'ss-mx',                   title:'Subway Surfers Mexico',       cat:'racing', icon:'🌮', desc:'Día de los Muertos edition'},
+  {id:'hillclimb',               title:'Hill Climb Racing',           cat:'racing', icon:'🚗', desc:'Physics-based uphill driving madness'},
+  {id:'driftboss',               title:'Drift Boss',                  cat:'racing', icon:'🏁', desc:'Master the art of drifting'},
+  {id:'drifthunter',             title:'Drift Hunter',                cat:'racing', icon:'🚙', desc:'3D open-world drift simulation'},
+
+  // ─── PUZZLE ───
+  {id:'wordle',       title:'Wordle',             cat:'puzzle', icon:'📝', desc:'Guess the 5-letter word in 6 tries', hot:true},
+  {id:'chess',        title:'Chess Classic',       cat:'puzzle', icon:'♟️', desc:'The timeless strategy board game'},
+  {id:'blockblast-',  title:'Block Blast',         cat:'puzzle', icon:'🟧', desc:'Clear rows with falling block puzzles'},
+  {id:'ttt',          title:'Tic Tac Toe',         cat:'puzzle', icon:'❌', desc:'Classic X and O with cinematic flair'},
+  {id:'imt-',         title:'Idle Miner Tycoon',   cat:'puzzle', icon:'⛏️', desc:'Build your mining empire from scratch'},
+
+  // ─── IO / MULTIPLAYER ───
+  {id:'smashkarts',  title:'Smash Karts',   cat:'io', icon:'🎮', desc:'Kart racing battle royale arena', hot:true},
+  {id:'slither',     title:'Slither.io',    cat:'io', icon:'🐍', desc:'Grow the longest snake on the server'},
+  {id:'aquapark',    title:'Aquapark.io',   cat:'io', icon:'🌊', desc:'Water slide racing chaos'},
+  {id:'hole-io',     title:'Hole.io',       cat:'io', icon:'🕳️', desc:'Devour the entire city as a black hole'},
+  {id:'bs',          title:'Brawl Stars',   cat:'io', icon:'💥', desc:'Power Cube Survival battle arena'},
+
+  // ─── ACTION ───
+  {id:'leveldevil-',  title:'Level Devil',            cat:'action', icon:'😈', desc:'The floor IS the enemy — trust nothing', hot:true},
+  {id:'gdlite',       title:'Geometry Dash Lite',     cat:'action', icon:'🔷', desc:'Jump to the beat, dodge the spikes', hot:true},
+  {id:'gdsz',         title:'Geometry Dash SubZero',  cat:'action', icon:'❄️', desc:'Frozen rhythm platforming'},
+  {id:'gdsz2',        title:'GD SubZero v2',          cat:'action', icon:'🧊', desc:'More frozen beats and harder levels'},
+  {id:'arena',        title:'The Grand Arena',        cat:'action', icon:'🗡️', desc:'Gladiator-style combat challenge'},
+  {id:'duck-life',    title:'Duck Life',              cat:'action', icon:'🦆', desc:'Train your duck to be a champion racer!'},
+  {id:'Ball-breaker', title:'Ball Breaker',           cat:'action', icon:'🧱', desc:'Smash through brick walls with physics'},
+  {id:'claudefps',    title:'WARZONE: Mobile Ops',    cat:'action', icon:'🔫', desc:'FPS with loadouts, maps & AI enemies'},
+  {id:'utlb-',        title:'Undertale: Last Breath', cat:'action', icon:'💙', desc:'Sans goes all out — 3 brutal phases'},
+  {id:'yn-',          title:'Yume Nikki',             cat:'action', icon:'🌙', desc:'Surreal dream exploration RPG'},
+  {id:'rl',           title:'Rocket League 2D',       cat:'action', icon:'⚽', desc:'Car soccer in 2D — boost and score!'},
+
+  // ─── SANDBOX ───
+  {id:'infcraft',  title:'Nova Craft',          cat:'sandbox', icon:'🔨', desc:'Infinite crafting & building sandbox'},
+  {id:'craft',     title:'EaglercraftX 1.8',    cat:'sandbox', icon:'🟫', desc:'Minecraft 1.8 in your browser!', hot:true},
+  {id:'fnae',      title:'Five Nights at Big E', cat:'sandbox', icon:'🐻', desc:'Survive the night — horror fan game'},
+];
+
+// ─── RENDER ───
+const grid     = document.getElementById('gameGrid');
+const catBar   = document.getElementById('catBar');
+const searchIn = document.getElementById('searchInput');
+const resultBar= document.getElementById('resultBar');
+const emptyEl  = document.getElementById('emptyState');
+const heroEl   = document.getElementById('heroSection');
+const hotPicks = document.getElementById('hotPicks');
+const header   = document.getElementById('header');
+const overlay  = document.getElementById('playerOverlay');
+const gameFrame= document.getElementById('gameFrame');
+const loader   = document.getElementById('loader');
+const loaderTxt= document.getElementById('loaderText');
+
+let activeCat = 'all';
+
+// Build category buttons
+function buildCats(){
+  let html = '<button class="cat-btn active" data-cat="all">🎯 All</button>';
+  for(const [k,v] of Object.entries(CATS)){
+    const count = GAMES.filter(g=>g.cat===k).length;
+    html += `<button class="cat-btn" data-cat="${k}">${v.label} <span style="opacity:.5;font-size:11px">(${count})</span></button>`;
+  }
+  catBar.innerHTML = html;
+  catBar.querySelectorAll('.cat-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      activeCat = btn.dataset.cat;
+      catBar.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      render();
+    });
+  });
+}
+
+// Build hot picks
+function buildHot(){
+  const hots = GAMES.filter(g=>g.hot);
+  hotPicks.innerHTML = hots.map(g=>`<button class="hot-btn" data-id="${g.id}">${g.icon} ${g.title}</button>`).join('');
+  hotPicks.querySelectorAll('.hot-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>playGame(btn.dataset.id));
+  });
+}
+
+// Card HTML
+function cardHTML(g){
+  return `<div class="card" data-cat="${g.cat}" data-id="${g.id}">
+    <div class="card-icon"><span>${g.icon}</span></div>
+    ${g.hot?'<div class="badge-hot">HOT</div>':''}
+    <div class="card-info">
+      <h3>${g.title}</h3>
+      <p>${g.desc}</p>
+      <span class="cat-tag">${CATS[g.cat].label}</span>
+    </div>
+    <div class="play-overlay"><div class="play-btn"><svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg></div></div>
+  </div>`;
+}
+
+// Render grid
+function render(){
+  const q = searchIn.value.toLowerCase().trim();
+  const filtered = GAMES.filter(g=>{
+    if(activeCat!=='all' && g.cat!==activeCat) return false;
+    if(q && !g.title.toLowerCase().includes(q) && !g.desc.toLowerCase().includes(q)) return false;
+    return true;
+  });
+
+  // show/hide hero
+  heroEl.style.display = (!q && activeCat==='all') ? '' : 'none';
+
+  resultBar.textContent = `${filtered.length} game${filtered.length!==1?'s':''} found`;
+
+  if(filtered.length===0){
+    grid.style.display='none';
+    emptyEl.style.display='';
+  } else {
+    grid.style.display='';
+    emptyEl.style.display='none';
+    grid.innerHTML = filtered.map(cardHTML).join('');
+    grid.querySelectorAll('.card').forEach(card=>{
+      card.addEventListener('click',()=>playGame(card.dataset.id));
+    });
+  }
+}
+
+// Play game
+function playGame(id){
+  const g = GAMES.find(x=>x.id===id);
+  if(!g) return;
+  const cat = CATS[g.cat];
+  document.getElementById('playerIcon').textContent = g.icon;
+  document.getElementById('playerTitle').textContent = g.title;
+  document.getElementById('playerCat').textContent = cat.label;
+  document.getElementById('playerCat').style.color = cat.color;
+  document.getElementById('fullscreenBtn').href = `${BASE}/${g.id}/`;
+  loader.classList.remove('hidden');
+  loaderTxt.textContent = `Loading ${g.title}...`;
+  gameFrame.src = '';
+  overlay.classList.add('open');
+  document.body.style.overflow = 'hidden';
+  // Slight delay so modal paints first
+  setTimeout(()=>{
+    gameFrame.src = `${BASE}/${g.id}/`;
+  }, 100);
+}
+
+// Close player
+function closePlayer(){
+  overlay.classList.remove('open');
+  gameFrame.src = '';
+  document.body.style.overflow = '';
+}
+document.getElementById('closeBtn').addEventListener('click', closePlayer);
+
+// iframe load
+gameFrame.addEventListener('load',()=>{ loader.classList.add('hidden'); });
+
+// ESC to close
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape' && overlay.classList.contains('open')) closePlayer();
+});
+
+// Scroll header
+window.addEventListener('scroll',()=>{
+  header.classList.toggle('scrolled', window.scrollY > 40);
+},{passive:true});
+
+// Search
+searchIn.addEventListener('input', render);
+
+// Init
+buildCats();
+buildHot();
+render();
+</script>
+</body>
+</html>
